@@ -9,7 +9,12 @@
 from typing import Tuple
 from dataclasses import dataclass
 
-
+class Point:
+    def __init__(self,
+                 x: float,
+                 y: float) -> None:
+        self.x = x
+        self.y = y
 class RasterGrid:
     @dataclass
     class Cell:
@@ -23,10 +28,8 @@ class RasterGrid:
                  y1: float,
                  nx: int,
                  ny: int) -> None:
-        self._x0 = x0
-        self._y0 = y0
-        self._x1 = x1
-        self._y1 = y1
+        self._point0 = Point(x0,y0)
+        self._point1 = Point(x1,y1)
         self._nx = nx
         self._ny = ny
         self.nc = nx*ny
@@ -36,27 +39,27 @@ class RasterGrid:
 
     def get_cell_center(self, cell: Cell) -> Tuple[float, float]:
         return (
-            self._x0 + (float(cell._ix) + 0.5)*(self._x1 - self._x0)/self._nx,
-            self._y0 + (float(cell._iy) + 0.5)*(self._y1 - self._y0)/self._ny
+            self._point0.x + (float(cell._ix) + 0.5)*(self._point1.x - self._point0.x)/self._nx,
+            self._point0.y + (float(cell._iy) + 0.5)*(self._point1.y - self._point0.y)/self._ny
         )
 
     def get_cell(self, x: float, y: float) -> Cell:
         eps = 1e-6*max(
-            (self._x1-self._x0)/self._nx,
-            (self._y1-self._y0)/self._ny
+            (self._point1.x-self._point0.x)/self._nx,
+            (self._point1.y-self._point0.y)/self._ny
         )
-        if abs(x - self._x1) < eps:
+        if abs(x - self._point1.x) < eps:
             ix = self._nx - 1
-        elif abs(x - self._x0) < eps:
+        elif abs(x - self._point0.x) < eps:
             ix = 0
         else:
-            ix = int((x - self._x0)/((self._x1 - self._x0)/self._nx))
-        if abs(y - self._y1) < eps:
+            ix = int((x - self._point0.x)/((self._point1.x - self._point0.x)/self._nx))
+        if abs(y - self._point1.y) < eps:
             iy = self._ny - 1
-        elif abs(y - self._y0) < eps:
+        elif abs(y - self._point0.y) < eps:
             iy = 0
         else:
-            iy = int((y - self._y0)/((self._y1 - self._y0)/self._ny))
+            iy = int((y - self._point0.y)/((self._point1.y - self._point0.y)/self._ny))
         return self.Cell(ix, iy)
 
 
