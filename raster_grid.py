@@ -15,6 +15,7 @@ class Point:
                  y: float) -> None:
         self.x = x
         self.y = y
+
 class RasterGrid:
     @dataclass
     class Cell:
@@ -22,14 +23,12 @@ class RasterGrid:
         _iy: int
 
     def __init__(self,
-                 x0: float,
-                 y0: float,
-                 x1: float,
-                 y1: float,
+                 point0: Point,
+                 point1: Point,
                  nx: int,
                  ny: int) -> None:
-        self._point0 = Point(x0,y0)
-        self._point1 = Point(x1,y1)
+        self._point0 = point0
+        self._point1 = point1
         self._nx = nx
         self._ny = ny
         self.nc = nx*ny
@@ -43,7 +42,7 @@ class RasterGrid:
             self._point0.y + (float(cell._iy) + 0.5)*(self._point1.y - self._point0.y)/self._ny
         )
 
-    def get_cell(self, x: float, y: float) -> Cell:
+    def get_cell(self, x: float, y: float) -> Cell: #alternative name locate(), get_cell_at_point()
         eps = 1e-6*max(
             (self._point1.x-self._point0.x)/self._nx,
             (self._point1.y-self._point0.y)/self._ny
@@ -64,18 +63,16 @@ class RasterGrid:
 
 
 def test_number_of_cells():
-    x0 = 0.0
-    y0 = 0.0
-    dx = 1.0
-    dy = 1.0
-    assert RasterGrid(x0, y0, dx, dy, 10, 10).nc == 100
-    assert RasterGrid(x0, y0, dx, dy, 10, 20).nc == 200
-    assert RasterGrid(x0, y0, dx, dy, 20, 10).nc == 200
-    assert RasterGrid(x0, y0, dx, dy, 20, 20).nc == 400
+    point0 = Point(0.0, 0.0)
+    point1 = Point(1.0, 1.0)
+    assert RasterGrid(point0, point1, 10, 10).nc == 100
+    assert RasterGrid(point0, point1, 10, 20).nc == 200
+    assert RasterGrid(point0, point1, 20, 10).nc == 200
+    assert RasterGrid(point0, point1, 20, 20).nc == 400
 
 
 def test_locate_cell():
-    grid = RasterGrid(0.0, 0.0, 2.0, 2.0, 2, 2)
+    grid = RasterGrid(Point(0.0, 0.0), Point(2.0, 2.0), 2, 2)
     cell = grid.get_cell(0, 0)
     assert cell._ix == 0 and cell._iy == 0
     cell = grid.get_cell(1, 1)
@@ -91,7 +88,7 @@ def test_locate_cell():
 
 
 def test_cell_center():
-    grid = RasterGrid(0.0, 0.0, 2.0, 2.0, 2, 2)
+    grid = RasterGrid(Point(0.0, 0.0), Point(2.0, 2.0), 2, 2)
     cell = grid.get_cell(0.5, 0.5)
     assert abs(grid.get_cell_center(cell)[0] - 0.5) < 1e-7 and abs(grid.get_cell_center(cell)[1] - 0.5) < 1e-7
     cell = grid.get_cell(1.5, 0.5)
@@ -103,7 +100,7 @@ def test_cell_center():
 
 
 def test_cell_iterator() -> None:
-    grid = RasterGrid(0.0, 0.0, 2.0, 2.0, 2, 2)
+    grid = RasterGrid(Point(0.0, 0.0), Point(2.0, 2.0), 2, 2)
     count = sum(1 for _ in grid.cells)
     assert count == grid.nc
 
